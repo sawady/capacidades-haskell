@@ -1,0 +1,24 @@
+debe-fallar/B_CapacidadNoConcedida.hs:11:14: error: [GHC-39999]
+    • Could not deduce ‘Archivos m’ arising from a use of ‘leerArchivo’
+      from the context: (Red m, Consola m)
+        bound by the type signature for:
+                   resumen :: forall (m :: * -> *). (Red m, Consola m) => Url -> m ()
+        at debe-fallar/B_CapacidadNoConcedida.hs:8:1-44
+      Possible fix:
+        add (Archivos m) to the context of
+          the type signature for:
+            resumen :: forall (m :: * -> *). (Red m, Consola m) => Url -> m ()
+    • In a stmt of a 'do' block: secreto <- leerArchivo "/etc/passwd"
+      In the expression:
+        do pagina <- httpGet url
+           secreto <- leerArchivo "/etc/passwd"
+           imprimir (primeraLinea pagina ++ secreto)
+      In an equation for ‘resumen’:
+          resumen url
+            = do pagina <- httpGet url
+                 secreto <- leerArchivo "/etc/passwd"
+                 imprimir (primeraLinea pagina ++ secreto)
+   |
+11 |   secreto <- leerArchivo "/etc/passwd"
+   |              ^^^^^^^^^^^
+

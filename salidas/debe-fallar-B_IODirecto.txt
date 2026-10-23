@@ -1,0 +1,22 @@
+debe-fallar/B_IODirecto.hs:12:3: error: [GHC-25897]
+    • Couldn't match type ‘m’ with ‘IO’
+      Expected: m ()
+        Actual: IO ()
+      ‘m’ is a rigid type variable bound by
+        the type signature for:
+          resumen :: forall (m :: * -> *). (Red m, Consola m) => Url -> m ()
+        at debe-fallar/B_IODirecto.hs:9:1-44
+    • In a stmt of a 'do' block: putStrLn (primeraLinea pagina)
+      In the expression:
+        do pagina <- httpGet url
+           putStrLn (primeraLinea pagina)
+      In an equation for ‘resumen’:
+          resumen url
+            = do pagina <- httpGet url
+                 putStrLn (primeraLinea pagina)
+    • Relevant bindings include
+        resumen :: Url -> m () (bound at debe-fallar/B_IODirecto.hs:10:1)
+   |
+12 |   putStrLn (primeraLinea pagina)
+   |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+

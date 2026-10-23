@@ -1,0 +1,7 @@
+1. Sólo IO:
+<título de https://www.unq.edu.ar>
+  (leyó 59 variables de entorno sin permiso)
+2. Registros sobre IO:
+<título de https://www.unq.edu.ar>
+3. Registros sobre una mónada abstracta:
+<título de https://www.unq.edu.ar>

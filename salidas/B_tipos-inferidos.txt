@@ -1,0 +1,3 @@
+resumen :: (Red m, Consola m) => Url -> m ()
+resumenConArchivo
+  :: (Red m, Archivos m, Consola m) => Url -> FilePath -> m ()

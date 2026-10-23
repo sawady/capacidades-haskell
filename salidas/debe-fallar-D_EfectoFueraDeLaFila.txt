@@ -1,0 +1,21 @@
+debe-fallar/D_EfectoFueraDeLaFila.hs:11:3: error: [GHC-39999]
+    • Could not deduce ‘Miembro Consola es’
+        arising from a use of ‘imprimir’
+      from the context: Miembro Red es
+        bound by the type signature for:
+                   soloRed :: forall (es :: [* -> *]).
+                              Miembro Red es =>
+                              Url -> Eff es ()
+        at debe-fallar/D_EfectoFueraDeLaFila.hs:8:1-45
+    • In a stmt of a 'do' block: imprimir pagina
+      In the expression:
+        do pagina <- httpGet url
+           imprimir pagina
+      In an equation for ‘soloRed’:
+          soloRed url
+            = do pagina <- httpGet url
+                 imprimir pagina
+   |
+11 |   imprimir pagina
+   |   ^^^^^^^^
+

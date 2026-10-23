@@ -1,0 +1,5 @@
+Intérprete IO:
+<título de https://www.unq.edu.ar>
+Intérprete de prueba (salida capturada en una lista):
+página de prueba para https://www.unq.edu.ar
+página de prueba para https://www.unq.edu.ar / contenido simulado de nota.txt
