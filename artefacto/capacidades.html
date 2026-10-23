@@ -1,0 +1,328 @@
+<title>Capacidades en el tipo</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&family=Spectral:wght@500;600&display=swap">
+<style>
+  /* Layout: una columna de lectura (~70ch); los bloques de código y las tablas pueden ensancharse y desplazarse dentro de su caja. El acento es el violeta del logo de Haskell. */
+  :root {
+    --paper: #f7f7fa;
+    --ink: #1f1d2b;
+    --muted: #5d5a70;
+    --rule: #dcdae6;
+    --accent: #5e5086;
+    --code-bg: #efedf5;
+    --ok: #2f6b45;
+    --bad: #9b2f2f;
+    --tok-kw: #7a3f8f;
+    --tok-type: #2c5d8a;
+    --tok-str: #6b5414;
+    --tok-com: #77748a;
+    --f-head: "Spectral", Georgia, "Times New Roman", serif;
+    --f-body: "Source Sans 3", "Segoe UI", Roboto, Arial, sans-serif;
+    --f-mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #16151d; --ink: #e4e2ee; --muted: #a29fb6; --rule: #2e2c3b;
+      --accent: #b3a4e6; --code-bg: #1f1d29; --ok: #7cc79a; --bad: #ec8f8f;
+      --tok-kw: #d39ae6; --tok-type: #8ec0ea; --tok-str: #e2c17a; --tok-com: #8d8aa3;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #16151d; --ink: #e4e2ee; --muted: #a29fb6; --rule: #2e2c3b;
+    --accent: #b3a4e6; --code-bg: #1f1d29; --ok: #7cc79a; --bad: #ec8f8f;
+    --tok-kw: #d39ae6; --tok-type: #8ec0ea; --tok-str: #e2c17a; --tok-com: #8d8aa3;
+    color-scheme: dark;
+  }
+  body {
+    background: var(--paper); color: var(--ink);
+    font: 17px/1.6 var(--f-body);
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 40px 72px;
+  }
+  main { max-width: 74ch; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+  header { display: flex; flex-direction: column; gap: 10px; padding-bottom: 20px; border-bottom: 1px solid var(--rule); }
+  .eyebrow { font: 600 12px/1.4 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+  h1 { font: 600 clamp(30px, 5vw, 42px)/1.15 var(--f-head); margin: 0; text-wrap: balance; }
+  h2 { font: 600 25px/1.25 var(--f-head); margin: 30px 0 0; text-wrap: balance; }
+  h3 { font: 600 18px/1.3 var(--f-body); margin: 10px 0 0; }
+  p { margin: 0; }
+  .lead { font-size: 19px; color: var(--ink); }
+  .meta { font-size: 15px; color: var(--muted); }
+  a { color: var(--accent); }
+  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  code { font: 0.86em var(--f-mono); background: var(--code-bg); padding: 1px 5px; border-radius: 3px; }
+  ul, ol { margin: 0; padding-left: 1.3em; display: flex; flex-direction: column; gap: 6px; }
+
+  figure.codigo { margin: 4px 0; display: flex; flex-direction: column; min-width: 0; }
+  figure.codigo figcaption {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+    font: 12.5px/1.4 var(--f-mono); color: var(--muted);
+    padding: 7px 12px; border: 1px solid var(--rule); border-bottom: 0; border-radius: 6px 6px 0 0;
+  }
+  .chip { font: 600 11px/1 var(--f-mono); letter-spacing: .04em; padding: 4px 7px; border-radius: 99px; border: 1px solid currentColor; }
+  .chip.h2010 { color: var(--accent); }
+  .chip.ext { color: var(--tok-str); }
+  .chip.falla { color: var(--bad); }
+  .chip.salida { color: var(--ok); }
+  pre {
+    margin: 0; overflow-x: auto; background: var(--code-bg);
+    border: 1px solid var(--rule); border-radius: 0 0 6px 6px;
+    padding: 12px 14px; font: 13.5px/1.55 var(--f-mono); tab-size: 2;
+  }
+  pre code { background: none; padding: 0; font: inherit; }
+  pre.error { color: var(--bad); }
+  pre.out { color: var(--ok); }
+  .hljs-keyword, .hljs-meta { color: var(--tok-kw); }
+  .hljs-type, .hljs-title { color: var(--tok-type); }
+  .hljs-string, .hljs-number { color: var(--tok-str); }
+  .hljs-comment { color: var(--tok-com); font-style: italic; }
+
+  .tabla { overflow-x: auto; margin: 4px 0; }
+  table { border-collapse: collapse; font-size: 15px; min-width: 640px; width: 100%; }
+  th, td { text-align: left; vertical-align: top; padding: 8px 10px; border-bottom: 1px solid var(--rule); }
+  thead th { font: 600 12px/1.4 var(--f-mono); letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+  tbody th { font-weight: 600; white-space: nowrap; }
+  .si { color: var(--ok); font-weight: 600; }
+  .no { color: var(--bad); font-weight: 600; }
+
+  .nota { border-left: 3px solid var(--accent); padding: 4px 0 4px 14px; }
+  footer { margin-top: 28px; padding-top: 16px; border-top: 1px solid var(--rule); font-size: 14.5px; color: var(--muted); display: flex; flex-direction: column; gap: 6px; }
+  @media (max-width: 480px) {
+    body { font-size: 16px; padding-block: 24px 48px; }
+    pre { font-size: 12.5px; }
+  }
+</style>
+
+<main>
+  <header>
+    <div class="eyebrow">Doctorado UNQ · material de apoyo</div>
+    <h1>Capacidades en el tipo</h1>
+    <p class="lead">La tesis necesita que el tipo de un programa diga qué recursos puede usar: la red, los archivos, la consola. Con eso, un oráculo puede rechazar lo que no se concedió mientras un modelo escribe el código. Esta página compara cuatro maneras de lograrlo en Haskell, con el mismo problema en todas: bajar una página e imprimir su primera línea.</p>
+    <p class="meta">Todo el código de esta página sale del repositorio <code>sawady/capacidades-haskell</code> y compila con GHC 9.12.2. Los errores que se muestran son los que da GHC.</p>
+  </header>
+
+  <h2>El punto de partida: IO lo permite todo</h2>
+  <p>En Haskell, el tipo <code>IO ()</code> dice que la función hace entrada y salida, pero no cuál. Esta versión, además de bajar la página, lee las variables de entorno del proceso, y su tipo no cambia.</p>
+  <figure class="codigo">
+    <figcaption>src/A_SoloTipos.hs <span class="chip h2010">Haskell 2010</span></figcaption>
+    <pre><code class="language-haskell">resumenIO :: (Url -&gt; IO String) -&gt; Url -&gt; IO ()
+resumenIO bajar url = do
+  pagina &lt;- bajar url
+  putStrLn (primeraLinea pagina)
+  entorno &lt;- getEnvironment
+  putStrLn ("  (leyó " ++ show (length entorno) ++ " variables de entorno sin permiso)")</code></pre>
+  </figure>
+  <figure class="codigo">
+    <figcaption>salida <span class="chip salida">corre</span></figcaption>
+    <pre class="out">1. Sólo IO:
+&lt;título de https://www.unq.edu.ar&gt;
+  (leyó 59 variables de entorno sin permiso)</pre>
+  </figure>
+  <p>A eso se lo llama <strong>autoridad ambiente</strong>: el código puede hacer cualquier cosa que el proceso pueda hacer, sin que nadie se lo haya concedido. Las cuatro maneras que siguen intentan sacarla.</p>
+
+  <h2>1. Sólo tipos: las capacidades como argumentos</h2>
+  <p>La forma más directa es pasar cada capacidad como un valor: un registro con las funciones que la implementan. Si el resultado sigue siendo <code>IO</code>, el tipo nombra las capacidades pero no las hace cumplir. El cambio importante es hacer la mónada abstracta:</p>
+  <figure class="codigo">
+    <figcaption>src/A_SoloTipos.hs <span class="chip h2010">Haskell 2010</span></figcaption>
+    <pre><code class="language-haskell">data Red m = Red { httpGet :: Url -&gt; m String }
+
+data Consola m = Consola { imprimir :: String -&gt; m () }
+
+resumen :: Monad m =&gt; Red m -&gt; Consola m -&gt; Url -&gt; m ()
+resumen red consola url = do
+  pagina &lt;- httpGet red url
+  imprimir consola (primeraLinea pagina)</code></pre>
+  </figure>
+  <p>Como la función no sabe qué es <code>m</code>, sólo puede hacer lo que le dan los registros. Es Haskell 2010 puro y ya resuelve el problema de seguridad. Lo que no da es comodidad: cada capacidad se pasa a mano en cada llamada, y el tipo de una función lista los registros en un orden fijo.</p>
+
+  <h2>2. Tagless final: las capacidades como clases de tipos</h2>
+  <p>En lugar de pasar registros, cada capacidad es una clase de tipos de un parámetro. Una función que necesita la red pide <code>Red m</code>, y el compilador busca la implementación.</p>
+  <figure class="codigo">
+    <figcaption>src/Capacidades.hs <span class="chip h2010">Haskell 2010</span></figcaption>
+    <pre><code class="language-haskell">class Monad m =&gt; Red m where
+  httpGet :: Url -&gt; m String
+
+class Monad m =&gt; Consola m where
+  imprimir :: String -&gt; m ()
+
+class Monad m =&gt; Archivos m where
+  leerArchivo :: FilePath -&gt; m String</code></pre>
+  </figure>
+  <figure class="codigo">
+    <figcaption>src/B_TaglessFinal.hs, sin firma a propósito <span class="chip h2010">Haskell 2010</span></figcaption>
+    <pre><code class="language-haskell">resumen url = do
+  pagina &lt;- httpGet url
+  imprimir (primeraLinea pagina)
+
+-- | Usa también archivos: GHC infiere @(Red m, Archivos m, Consola m)@.
+resumenConArchivo url ruta = do
+  pagina &lt;- httpGet url
+  nota &lt;- leerArchivo ruta
+  imprimir (primeraLinea pagina ++ " / " ++ nota)</code></pre>
+  </figure>
+  <p>Ninguna de las dos funciones tiene firma, y GHC infiere exactamente las capacidades que usa cada una:</p>
+  <figure class="codigo">
+    <figcaption>tipos inferidos por GHC <span class="chip salida">ghc -e ':t ...'</span></figcaption>
+    <pre class="out">resumen :: (Red m, Consola m) =&gt; Url -&gt; m ()
+resumenConArchivo
+  :: (Red m, Archivos m, Consola m) =&gt; Url -&gt; FilePath -&gt; m ()</pre>
+  </figure>
+  <p class="nota">Esto es lo que más le importa a la tesis. El conjunto de capacidades que usa un fragmento sale de la inferencia de tipos, que en Haskell 2010 es decidible. El oráculo sólo tiene que comparar ese conjunto con la concesión.</p>
+  <p>El intérprete es una mónada concreta con instancias para algunas capacidades. Elegir el intérprete es elegir qué se concede. Hay uno sobre IO y otro puro para pruebas, y el mismo programa corre en los dos sin cambios.</p>
+
+  <h3>Lo que GHC rechaza</h3>
+  <figure class="codigo">
+    <figcaption>debe-fallar/B_CapacidadNoConcedida.hs: la firma concede red y consola, el cuerpo lee un archivo <span class="chip falla">no compila</span></figcaption>
+    <pre class="error">debe-fallar/B_CapacidadNoConcedida.hs:11:14: error: [GHC-39999]
+    • Could not deduce ‘Archivos m’ arising from a use of ‘leerArchivo’
+      from the context: (Red m, Consola m)</pre>
+  </figure>
+  <figure class="codigo">
+    <figcaption>debe-fallar/B_IODirecto.hs: con la mónada abstracta no se puede usar IO <span class="chip falla">no compila</span></figcaption>
+    <pre class="error">debe-fallar/B_IODirecto.hs:12:3: error: [GHC-25897]
+    • Couldn't match type ‘m’ with ‘IO’
+      Expected: m ()
+        Actual: IO ()</pre>
+  </figure>
+  <figure class="codigo">
+    <figcaption>debe-fallar/B_InterpreteSinCapacidad.hs: el intérprete no concede archivos <span class="chip falla">no compila</span></figcaption>
+    <pre class="error">debe-fallar/B_InterpreteSinCapacidad.hs:34:19: error: [GHC-39999]
+    • No instance for ‘Archivos App’</pre>
+  </figure>
+
+  <h2>¿Por qué clases y no sólo tipos?</h2>
+  <p>Los registros sobre una mónada abstracta (sección 1) ya dan la misma seguridad. La diferencia está en quién hace el trabajo:</p>
+  <div class="tabla">
+    <table>
+      <thead><tr><th></th><th>Registros de funciones</th><th>Clases de tipos</th></tr></thead>
+      <tbody>
+        <tr><th>Quién pasa las capacidades</th><td>El programador, como argumentos, en cada llamada</td><td>El compilador, por resolución de instancias</td></tr>
+        <tr><th>Qué capacidades usa una función</th><td>Las que recibe; hay que declararlas</td><td><span class="si">GHC las infiere</span></td></tr>
+        <tr><th>Cómo se combinan</th><td>Una lista de argumentos, con orden</td><td>Un conjunto de restricciones, sin orden</td></tr>
+        <tr><th>Dos implementaciones a la vez</th><td><span class="si">Sí</span>, pasando dos registros distintos</td><td>Una por mónada; para otra, otro intérprete</td></tr>
+        <tr><th>Para un modelo que genera código</th><td>Tiene que acarrear los registros por todo el programa</td><td>Escribe el código directo; las capacidades se deducen</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Para la tesis, la fila decisiva es la segunda. Con clases, el conjunto de capacidades de un programa a medio escribir sale de la inferencia. Con registros, el oráculo tendría que seguir qué argumentos se usan, lo cual también es posible pero es trabajo propio.</p>
+
+  <h2>3. Transformadores de mónadas</h2>
+  <p>Es la línea en la que vienen trabajando. Cada capa de la pila aporta una capacidad, y el tipo nombra la pila concreta, en un orden fijo.</p>
+  <figure class="codigo">
+    <figcaption>src/C1_Transformers.hs <span class="chip h2010">Haskell 2010</span></figcaption>
+    <pre><code class="language-haskell">type App = ReaderT Config (StateT Int IO)
+
+bajar :: Url -&gt; App String
+bajar url = do
+  lift (modify (+ 1))                     -- capa StateT: una capa abajo
+  return ("&lt;título de " ++ url ++ "&gt;\nresto")
+
+resumen :: String -&gt; App ()
+resumen ruta = do
+  cfg &lt;- ask                               -- capa ReaderT: la de arriba
+  pagina &lt;- bajar (servidor cfg ++ ruta)
+  n &lt;- lift get
+  lift (lift (putStrLn (primeraLinea pagina ++ " (pedido " ++ show n ++ ")")))
+  -- IO está en el fondo de la pila: con lift (lift ...) se puede hacer
+  -- cualquier IO. Los transformadores ordenan las capacidades, pero no
+  -- sacan la autoridad ambiente de IO.</code></pre>
+  </figure>
+  <p>Dos cosas se ven en el ejemplo. Para usar una capa interna hay que levantar a mano con <code>lift</code>, tantas veces como capas haya encima. Y como IO está en el fondo de la pila, <code>lift (lift ...)</code> llega a cualquier operación de IO: los transformadores ordenan las capacidades, pero no sacan la autoridad ambiente.</p>
+
+  <h3>El estilo mtl es tagless final</h3>
+  <p>Las clases de mtl, como <code>MonadReader</code> y <code>MonadState</code>, son exactamente la idea de la sección 2: <code>MonadReader Config m</code> quiere decir «m puede leer una Config». La diferencia es que tienen dos parámetros, así que requieren extensiones.</p>
+  <figure class="codigo">
+    <figcaption>src/C2_Mtl.hs <span class="chip ext">+ FlexibleContexts</span></figcaption>
+    <pre><code class="language-haskell">resumen :: (MonadReader Config m, MonadState Int m, Red m) =&gt; String -&gt; m String
+resumen ruta = do
+  cfg &lt;- ask
+  modify (+ 1)
+  pagina &lt;- httpGet (servidor cfg ++ ruta)
+  n &lt;- get
+  return (primeraLinea pagina ++ " (pedido " ++ show n ++ ")")</code></pre>
+  </figure>
+  <p>Una capacidad propia, como <code>Red</code>, convive con las de mtl. Para que atraviese la pila hace falta una instancia por transformador, lo que se conoce como el problema de las n² instancias:</p>
+  <figure class="codigo">
+    <figcaption>src/C2_Mtl.hs <span class="chip ext">+ FlexibleContexts</span></figcaption>
+    <pre><code class="language-haskell">instance Red m =&gt; Red (ReaderT r m) where
+  httpGet = lift . httpGet
+
+instance Red m =&gt; Red (StateT s m) where
+  httpGet = lift . httpGet</code></pre>
+  </figure>
+  <p class="nota">La consecuencia para la tesis: no hay que elegir entre tagless final y transformadores. Los programas se escriben con capacidades como clases, y los intérpretes se arman con pilas de transformadores, como en este ejemplo. Lo que hay que evitar es <code>MonadIO</code>, que devuelve la autoridad ambiente completa.</p>
+
+  <h2>4. Sistemas de efectos con filas</h2>
+  <p>Acá la computación lleva en su tipo una <strong>fila</strong>: la lista de efectos que puede usar. <code>Eff es a</code> es una computación que produce un <code>a</code> usando los efectos de <code>es</code>. La función de abajo es polimórfica en la fila: funciona en cualquier fila que contenga <code>Red</code> y <code>Consola</code>. Eso es el polimorfismo de filas.</p>
+  <figure class="codigo">
+    <figcaption>src/D_FilasDeEfectos.hs <span class="chip ext">+ FlexibleContexts</span></figcaption>
+    <pre><code class="language-haskell">resumen :: (Miembro Red es, Miembro Consola es) =&gt; Url -&gt; Eff es ()
+resumen url = do
+  pagina &lt;- httpGet url
+  imprimir (takeWhile (/= '\n') pagina)</code></pre>
+  </figure>
+  <p>Los efectos sólo declaran operaciones. Lo que hacen lo decide un <strong>manejador</strong>, que saca un efecto de la fila y lo interpreta. Cuando la fila queda vacía, la computación es pura.</p>
+  <figure class="codigo">
+    <figcaption>src/Efectos.hs <span class="chip ext">+ 7 extensiones</span></figcaption>
+    <pre><code class="language-haskell">data Red a where
+  HttpGet :: Url -&gt; Red String
+
+data Consola a where
+  Imprimir :: String -&gt; Consola ()</code></pre>
+  </figure>
+  <figure class="codigo">
+    <figcaption>src/Efectos.hs: el manejador de Red <span class="chip ext">+ 7 extensiones</span></figcaption>
+    <pre><code class="language-haskell">manejarRed :: (Url -&gt; String) -&gt; Eff (Red ': es) a -&gt; Eff es a
+manejarRed _ (Puro a) = Puro a
+manejarRed tabla (Pedir (Aqui (HttpGet url)) k) = manejarRed tabla (k (tabla url))
+manejarRed tabla (Pedir (Alla u) k) = Pedir u (manejarRed tabla . k)</code></pre>
+  </figure>
+  <p>El mismo programa se corre aplicando los manejadores en orden. Uno interpreta la consola acumulando líneas en una lista, sin IO. Otro la interpreta con IO real, que entonces tiene que estar más abajo en la fila. El rechazo de una capacidad no concedida es igual que con clases:</p>
+  <figure class="codigo">
+    <figcaption>debe-fallar/D_EfectoFueraDeLaFila.hs: la fila sólo tiene Red, el cuerpo imprime <span class="chip falla">no compila</span></figcaption>
+    <pre class="error">debe-fallar/D_EfectoFueraDeLaFila.hs:11:3: error: [GHC-39999]
+    • Could not deduce ‘Miembro Consola es’
+        arising from a use of ‘imprimir’
+      from the context: Miembro Red es</pre>
+  </figure>
+  <p>En Haskell la fila es una lista a nivel de tipos, y por eso hacen falta <code>DataKinds</code>, <code>GADTs</code>, <code>TypeOperators</code> y otras cuatro extensiones. Una lista tiene orden y puede repetir elementos, cosas que una fila de verdad no tiene. Los lenguajes diseñados para esto, como Koka, escriben la fila en el tipo de la función, con una variable para «el resto de los efectos», y la tratan como conjunto. En Haskell lo ofrecen bibliotecas como effectful, polysemy y fused-effects. El repositorio usa una versión mínima, hecha a mano en unas 120 líneas, para que se vea el mecanismo sin dependencias.</p>
+
+  <h2>Las cuatro, lado a lado</h2>
+  <div class="tabla">
+    <table>
+      <thead><tr><th></th><th>Registros sobre <code>m</code></th><th>Tagless final</th><th>Transformadores</th><th>Estilo mtl</th><th>Filas de efectos</th></tr></thead>
+      <tbody>
+        <tr><th>Dónde está la capacidad</th><td>En los argumentos</td><td>En las restricciones de clase</td><td>En las capas de la pila</td><td>En las restricciones de clase</td><td>En la fila de <code>Eff</code></td></tr>
+        <tr><th>Saca la autoridad ambiente</th><td><span class="si">Sí</span></td><td><span class="si">Sí</span></td><td><span class="no">No</span>: IO está en el fondo</td><td><span class="si">Sí</span>, salvo con <code>MonadIO</code></td><td><span class="si">Sí</span>, salvo que IO esté en la fila</td></tr>
+        <tr><th>GHC infiere el conjunto usado</th><td><span class="no">No</span></td><td><span class="si">Sí</span></td><td><span class="no">No</span>: la pila se declara</td><td><span class="si">Sí</span></td><td><span class="si">Sí</span></td></tr>
+        <tr><th>Importa el orden</th><td>El de los argumentos</td><td>No</td><td>Sí</td><td>No en el programa; sí en la pila del intérprete</td><td>Sí, al aplicar los manejadores</td></tr>
+        <tr><th>Extensiones</th><td>Ninguna</td><td>Ninguna</td><td>Ninguna</td><td><code>FlexibleContexts</code></td><td>Siete</td></tr>
+        <tr><th>Costo de usarlo</th><td>Acarrear argumentos</td><td>Una instancia por capacidad e intérprete</td><td><code>lift</code> a mano</td><td>n² instancias</td><td>Escribir manejadores</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Qué conviene para la tesis</h2>
+  <ol>
+    <li><strong>Escribir los programas en tagless final, con clases de un parámetro.</strong> Es Haskell 2010 sin extensiones, la inferencia es decidible y GHC calcula el conjunto de capacidades de cada fragmento. Es lo que el oráculo necesita.</li>
+    <li><strong>Armar los intérpretes con transformadores.</strong> Es la línea de ustedes y encaja sin conflicto, como muestra el ejemplo de mtl.</li>
+    <li><strong>Dejar fuera del subconjunto todo lo que devuelve la autoridad ambiente:</strong> <code>IO</code> en las firmas, <code>MonadIO</code> y <code>unsafePerformIO</code>. Si no, las capacidades se pueden saltear.</li>
+    <li><strong>Usar las filas de efectos como comparación</strong> en el marco teórico. Son más expresivas, porque un manejador puede reinterpretar un efecto, pero exigen extensiones y un sistema de tipos más complejo para el oráculo.</li>
+  </ol>
+  <p>Una limitación a tener en cuenta: con clases, la capacidad es «usar la red», no «usar esta URL». Restringir a qué recursos se accede pediría refinamientos u otros mecanismos, y queda fuera de este alcance.</p>
+
+  <footer>
+    <span>Repositorio: <code>github.com/sawady/capacidades-haskell</code> (privado). <code>./compilar.sh</code> compila y corre todo, y comprueba que los ejemplos de <code>debe-fallar/</code> no compilen.</span>
+    <span>Probado con GHC 9.12.2, con <code>base</code>, <code>mtl</code> y <code>transformers</code>.</span>
+  </footer>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/haskell.min.js"></script>
+<script>
+  try { if (window.hljs) hljs.highlightAll(); } catch (e) { /* sin resaltado, el código se lee igual */ }
+</script>

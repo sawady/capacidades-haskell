@@ -35,7 +35,7 @@ que vienen con GHC, así que no hace falta `cabal`. El script:
 | `src/B_TaglessFinal.hs` | Capacidades como clases de un parámetro. GHC **infiere** qué capacidades usa cada función. Dos intérpretes: IO y uno puro para pruebas. | Haskell 2010 |
 | `src/C1_Transformers.hs` | Una pila concreta de `transformers`, con `lift` a mano. | Haskell 2010 |
 | `src/C2_Mtl.hs` | Estilo mtl: la misma pila detrás de clases. Una capacidad propia que atraviesa la pila. | Haskell 2010 + `FlexibleContexts` |
-| `src/D_FilasDeEfectos.hs` y `src/Efectos.hs` | Un sistema de efectos con filas hecho a mano, en unas 100 líneas: la fila es una lista a nivel de tipos. | Haskell 2010 + 7 extensiones |
+| `src/D_FilasDeEfectos.hs` y `src/Efectos.hs` | Un sistema de efectos con filas hecho a mano, en unas 120 líneas: la fila es una lista a nivel de tipos. | Haskell 2010 + 7 extensiones |
 | `debe-fallar/B_CapacidadNoConcedida.hs` | La firma concede red y consola, y el cuerpo lee un archivo. | Haskell 2010 |
 | `debe-fallar/B_IODirecto.hs` | Con la mónada abstracta, ni siquiera se puede usar IO directamente. | Haskell 2010 |
 | `debe-fallar/B_InterpreteSinCapacidad.hs` | El programa pide archivos y el intérprete no los concede. | Haskell 2010 |
@@ -52,3 +52,16 @@ que vienen con GHC, así que no hace falta `cabal`. El script:
 
 Una aclaración sobre «Haskell 2010»: el informe de 2010 no tiene `Applicative` como superclase
 de `Monad`, y GHC sí. Los ejemplos escriben esa instancia, como pide el GHC actual.
+
+## La página explicativa
+
+`artefacto/capacidades.html` explica los cuatro estilos y los compara. Se publicó como artefacto
+en https://claude.ai/artifact/TDu94XyfdQX54Eak8AyqLp. No se edita a mano: se genera desde
+`artefacto/plantilla.html` con
+
+```
+./compilar.sh && python3 artefacto/generar.py
+```
+
+El generador inserta en la plantilla los fragmentos de `src/`, `debe-fallar/` y `salidas/`, así
+que el código y los errores de la página son siempre los que compila el script.
