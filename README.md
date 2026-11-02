@@ -44,7 +44,9 @@ GHC=ghc-9.6.7 ./compilar.sh
 El CI (`.github/workflows/compilar.yml`) corre el script con GHC 9.6.7, 9.8.4, 9.10.3, 9.12.2 y,
 como experimental, 9.14.1. Con la versión de referencia compara `salidas/` y la página
 exactamente con lo que está en el repositorio. Con las demás, los mensajes de error de GHC sólo
-cambian en líneas en blanco, así que la comparación las ignora.
+cambian en líneas en blanco, así que la comparación las ignora. GHC 9.14.1 compila todo y rechaza
+lo que debe, pero al mostrar los tipos inferidos de B expande los sinónimos (`[Char]` en lugar de
+`Url` y `FilePath`), así que su comparación falla sin romper el CI.
 
 ## Los ejemplos
 

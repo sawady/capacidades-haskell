@@ -54,7 +54,9 @@ GHC=ghc-9.6.7 ./compilar.sh
 CI (`.github/workflows/compilar.yml`) runs the script with GHC 9.6.7, 9.8.4, 9.10.3, 9.12.2 and,
 as experimental, 9.14.1. With the reference version it compares `salidas/` and the page exactly
 against what is in the repository. With the others, GHC's error messages only differ in blank
-lines, so the comparison ignores them.
+lines, so the comparison ignores them. GHC 9.14.1 compiles everything and rejects what it should,
+but when showing B's inferred types it expands the synonyms (`[Char]` instead of `Url` and
+`FilePath`), so its comparison fails without breaking CI.
 
 ## The examples
 

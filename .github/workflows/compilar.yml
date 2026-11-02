@@ -6,7 +6,9 @@
 # referencia (9.12.2) y se comparan exactamente con esa versión. Con las demás
 # versiones los mensajes de error de GHC sólo difieren en líneas en blanco, así
 # que se comparan ignorándolas (y sin salidas/ghc-version.txt). 9.14 es
-# experimental: si falla, no rompe el CI.
+# experimental: si falla, no rompe el CI. Hoy compila y rechaza lo que debe,
+# pero `ghc -e ':t'` muestra [Char] en lugar de los sinónimos Url y FilePath,
+# así que salidas/B_tipos-inferidos.txt no coincide.
 name: compilar
 
 on:
