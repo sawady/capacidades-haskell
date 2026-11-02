@@ -1,5 +1,9 @@
 # Capacidades en Haskell
 
+[![compilar](https://github.com/sawady/capacidades-haskell/actions/workflows/compilar.yml/badge.svg)](https://github.com/sawady/capacidades-haskell/actions/workflows/compilar.yml)
+
+*[English version](README.en.md)*
+
 Cuatro maneras de decir, en el tipo de un programa Haskell, qué recursos puede usar:
 
 - sólo tipos,
@@ -20,12 +24,27 @@ un oráculo pueda rechazar lo que no se concedió mientras un modelo de lenguaje
 ./compilar.sh
 ```
 
-Necesita GHC; se probó con 9.12.2 instalado con GHCup. Sólo usa `base`, `mtl` y `transformers`,
-que vienen con GHC, así que no hace falta `cabal`. El script:
+Necesita GHC. Sólo usa `base`, `mtl` y `transformers`, que vienen con GHC, así que no hace falta
+`cabal`. El script:
 
 - compila y corre cada ejemplo de `src/`;
 - comprueba que los de `debe-fallar/` **no** compilen;
 - guarda en `salidas/` todo lo que se ve, incluidos los mensajes de error de GHC.
+
+Los ejemplos corren con un entorno fijo (sólo `LANG` y `PATH`), para que las salidas no cambien de
+una máquina a otra. El script termina con la cantidad de fallos: 0 si todo salió como se esperaba.
+
+La versión de referencia es GHC 9.12.2, instalado con GHCup: con ella se generaron `salidas/` y la
+página. Para probar otra versión:
+
+```
+GHC=ghc-9.6.7 ./compilar.sh
+```
+
+El CI (`.github/workflows/compilar.yml`) corre el script con GHC 9.6.7, 9.8.4, 9.10.3, 9.12.2 y,
+como experimental, 9.14.1. Con la versión de referencia compara `salidas/` y la página
+exactamente con lo que está en el repositorio. Con las demás, los mensajes de error de GHC sólo
+cambian en líneas en blanco, así que la comparación las ignora.
 
 ## Los ejemplos
 
@@ -65,3 +84,12 @@ en https://claude.ai/artifact/TDu94XyfdQX54Eak8AyqLp. No se edita a mano: se gen
 
 El generador inserta en la plantilla los fragmentos de `src/`, `debe-fallar/` y `salidas/`, así
 que el código y los errores de la página son siempre los que compila el script.
+
+## Licencia
+
+- El código (`src/`, `debe-fallar/`, `compilar.sh`, `artefacto/generar.py` y el CI) está bajo
+  licencia MIT: ver [`LICENSE`](LICENSE).
+- El texto (este README, `README.en.md` y la página explicativa, `artefacto/plantilla.html` y
+  `artefacto/capacidades.html`) está bajo
+  [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/deed.es): ver
+  [`LICENSE-docs`](LICENSE-docs). Los fragmentos de código que aparecen en el texto siguen bajo MIT.
