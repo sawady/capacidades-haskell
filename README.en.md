@@ -97,6 +97,11 @@ hand: it is generated from `artefacto/plantilla.html` with
 The generator inserts into the template the fragments of `src/`, `debe-fallar/` and `salidas/`, so
 the code and the errors on the page are always the ones the script compiles.
 
+## Contributing
+
+Issues are welcome: see [`CONTRIBUTING.md`](CONTRIBUTING.md). Changes are listed (in Spanish) in
+[`CHANGELOG.md`](CHANGELOG.md).
+
 ## License
 
 - The code (`src/`, `debe-fallar/`, `compilar.sh`, `artefacto/generar.py` and CI) is under the

@@ -87,6 +87,11 @@ en https://claude.ai/artifact/TDu94XyfdQX54Eak8AyqLp. No se edita a mano: se gen
 El generador inserta en la plantilla los fragmentos de `src/`, `debe-fallar/` y `salidas/`, así
 que el código y los errores de la página son siempre los que compila el script.
 
+## Contribuir
+
+Los issues son bienvenidos: ver [`CONTRIBUTING.md`](CONTRIBUTING.md). Los cambios están en
+[`CHANGELOG.md`](CHANGELOG.md).
+
 ## Licencia
 
 - El código (`src/`, `debe-fallar/`, `compilar.sh`, `artefacto/generar.py` y el CI) está bajo
