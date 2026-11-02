@@ -1,0 +1,66 @@
+# Corre ./compilar.sh con varias versiones de GHC. Falla si algún ejemplo de
+# src/ no compila o no corre, si algo de debe-fallar/ compila, o si las
+# salidas cambian respecto de las que están en el repositorio.
+#
+# salidas/ y artefacto/capacidades.html se generan con la versión de
+# referencia (9.12.2) y se comparan exactamente con esa versión. Con las demás
+# versiones los mensajes de error de GHC sólo difieren en líneas en blanco, así
+# que se comparan ignorándolas (y sin salidas/ghc-version.txt). 9.14 es
+# experimental: si falla, no rompe el CI. Hoy compila y rechaza lo que debe,
+# pero `ghc -e ':t'` muestra [Char] en lugar de los sinónimos Url y FilePath,
+# así que salidas/B_tipos-inferidos.txt no coincide.
+name: compilar
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compilar:
+    name: GHC ${{ matrix.ghc }}
+    runs-on: ubuntu-latest
+    continue-on-error: ${{ matrix.experimental == true }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - ghc: '9.6.7'
+          - ghc: '9.8.4'
+          - ghc: '9.10.3'
+          - ghc: '9.12.2'
+            referencia: true
+          - ghc: '9.14.1'
+            experimental: true
+    env:
+      LANG: C.UTF-8
+    steps:
+      - uses: actions/checkout@v5
+
+      - id: setup
+        uses: haskell-actions/setup@v2
+        with:
+          ghc-version: ${{ matrix.ghc }}
+
+      - name: Compilar, correr y comprobar debe-fallar/
+        run: ./compilar.sh
+        env:
+          GHC: ${{ steps.setup.outputs.ghc-exe }}
+
+      - name: Comparar salidas/ y la página (versión de referencia, exacto)
+        if: matrix.referencia
+        run: |
+          python3 artefacto/generar.py
+          git diff --exit-code -- salidas artefacto/capacidades.html
+
+      - name: Comparar salidas/ (sin líneas en blanco ni versión de GHC)
+        if: ${{ !matrix.referencia }}
+        # git diff --exit-code no respeta --ignore-blank-lines en todas las
+        # versiones de git: se mira si la diferencia queda vacía.
+        run: |
+          diferencias=$(git diff --ignore-blank-lines -- salidas ':!salidas/ghc-version.txt')
+          if [ -n "$diferencias" ]; then echo "$diferencias"; exit 1; fi
