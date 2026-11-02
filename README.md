@@ -1,6 +1,7 @@
 # Capacidades en Haskell
 
 [![compilar](https://github.com/sawady/capacidades-haskell/actions/workflows/compilar.yml/badge.svg)](https://github.com/sawady/capacidades-haskell/actions/workflows/compilar.yml)
+[![Sponsor](https://img.shields.io/github/sponsors/sawady?label=Sponsor&logo=GitHub)](https://github.com/sponsors/sawady)
 
 *[English version](README.en.md)*
 
@@ -91,6 +92,11 @@ que el código y los errores de la página son siempre los que compila el script
 
 Los issues son bienvenidos: ver [`CONTRIBUTING.md`](CONTRIBUTING.md). Los cambios están en
 [`CHANGELOG.md`](CHANGELOG.md).
+
+## Apoyar el proyecto
+
+Este proyecto es software libre. Si te resulta útil, podés apoyar su desarrollo con
+[GitHub Sponsors](https://github.com/sponsors/sawady).
 
 ## Licencia
 

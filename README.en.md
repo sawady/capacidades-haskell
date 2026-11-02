@@ -1,6 +1,7 @@
 # Capabilities in Haskell
 
 [![compilar](https://github.com/sawady/capacidades-haskell/actions/workflows/compilar.yml/badge.svg)](https://github.com/sawady/capacidades-haskell/actions/workflows/compilar.yml)
+[![Sponsor](https://img.shields.io/github/sponsors/sawady?label=Sponsor&logo=GitHub)](https://github.com/sponsors/sawady)
 
 *[Versión en español](README.md)* — this is a translation of the Spanish README, which is the
 reference version.
@@ -101,6 +102,11 @@ the code and the errors on the page are always the ones the script compiles.
 
 Issues are welcome: see [`CONTRIBUTING.md`](CONTRIBUTING.md). Changes are listed (in Spanish) in
 [`CHANGELOG.md`](CHANGELOG.md).
+
+## Sponsoring
+
+This project is free software. If it is useful to you, you can support its development through
+[GitHub Sponsors](https://github.com/sponsors/sawady).
 
 ## License
 
