@@ -1,108 +1,114 @@
-# Capacidades en Haskell
+# Capabilities in Haskell
 
-[![compilar](https://github.com/sawady/capacidades-haskell/actions/workflows/compilar.yml/badge.svg)](https://github.com/sawady/capacidades-haskell/actions/workflows/compilar.yml)
+[![build](https://github.com/sawady/capacidades-haskell/actions/workflows/build.yml/badge.svg)](https://github.com/sawady/capacidades-haskell/actions/workflows/build.yml)
 [![Sponsor](https://img.shields.io/github/sponsors/sawady?label=Sponsor&logo=GitHub)](https://github.com/sponsors/sawady)
 
-*[English version](README.en.md)*
+Four ways of stating, in the type of a Haskell program, which resources it may use:
 
-Cuatro maneras de decir, en el tipo de un programa Haskell, qué recursos puede usar:
+- types only,
+- type classes in the *tagless final* style,
+- monad transformers,
+- effect systems with rows.
 
-- sólo tipos,
-- clases de tipos al estilo *tagless final*,
-- transformadores de mónadas,
-- sistemas de efectos con filas.
+All the examples solve the same problem: download a page and print its first line.
+The network is simulated.
 
-Todos los ejemplos resuelven el mismo problema: bajar una página e imprimir su primera línea.
-La red está simulada.
+**Read the guide:** https://sawady.github.io/capacidades-haskell/ explains the four styles and
+compares them, with the code and the GHC errors from this repository.
 
-Es material de apoyo para el plan de doctorado «Restringir antes que validar» (UNQ). La tesis
-necesita que las capacidades de un programa (red, archivos, consola) estén en su tipo, para que
-un oráculo pueda rechazar lo que no se concedió mientras un modelo de lenguaje escribe el código.
+This is supporting material for the doctoral plan «Restringir antes que validar» ("Restrict before
+validating", Universidad Nacional de Quilmes, UNQ). The thesis needs a program's capabilities
+(network, files, console) to be in its type, so that an oracle can reject whatever was not granted
+while a language model writes the code.
 
-## Cómo correrlo
+The project was originally written in Spanish; that version is in the git history at commit
+`4d808dd`.
 
-```
-./compilar.sh
-```
-
-Necesita GHC. Sólo usa `base`, `mtl` y `transformers`, que vienen con GHC, así que no hace falta
-`cabal`. El script:
-
-- compila y corre cada ejemplo de `src/`;
-- comprueba que los de `debe-fallar/` **no** compilen;
-- guarda en `salidas/` todo lo que se ve, incluidos los mensajes de error de GHC.
-
-Los ejemplos corren con un entorno fijo (sólo `LANG` y `PATH`), para que las salidas no cambien de
-una máquina a otra. El script termina con la cantidad de fallos: 0 si todo salió como se esperaba.
-
-La versión de referencia es GHC 9.12.2, instalado con GHCup: con ella se generaron `salidas/` y la
-página. Para probar otra versión:
+## How to run it
 
 ```
-GHC=ghc-9.6.7 ./compilar.sh
+./build.sh
 ```
 
-El CI (`.github/workflows/compilar.yml`) corre el script con GHC 9.6.7, 9.8.4, 9.10.3, 9.12.2 y,
-como experimental, 9.14.1. Con la versión de referencia compara `salidas/` y la página
-exactamente con lo que está en el repositorio. Con las demás, los mensajes de error de GHC sólo
-cambian en líneas en blanco, así que la comparación las ignora. GHC 9.14.1 compila todo y rechaza
-lo que debe, pero al mostrar los tipos inferidos de B expande los sinónimos (`[Char]` en lugar de
-`Url` y `FilePath`), así que su comparación falla sin romper el CI.
+It needs GHC. It only uses `base`, `mtl` and `transformers`, which ship with GHC, so `cabal` is not
+needed. The script:
 
-## Los ejemplos
+- builds and runs each example in `src/`;
+- checks that the ones in `must-fail/` do **not** compile;
+- saves to `outputs/` everything that is shown, including GHC's error messages.
 
-| Archivo | Qué muestra | Lenguaje |
+The examples run with a fixed environment (only `LANG` and `PATH`), so that the outputs do not
+change from one machine to another. The script exits with the number of failures: 0 if everything
+went as expected.
+
+The reference version is GHC 9.12.2, installed with GHCup: `outputs/` and the page were generated
+with it. To try another version:
+
+```
+GHC=ghc-9.6.7 ./build.sh
+```
+
+CI (`.github/workflows/build.yml`) runs the script with GHC 9.6.7, 9.8.4, 9.10.3, 9.12.2 and, as
+experimental, 9.14.1. With the reference version it compares `outputs/` and the page exactly
+against what is in the repository. With the others, GHC's error messages only differ in blank
+lines, so the comparison ignores them. GHC 9.14.1 compiles everything and rejects what it should,
+but when showing B's inferred types it expands the synonyms (`[Char]` instead of `Url` and
+`FilePath`), so its comparison fails without breaking CI.
+
+## The examples
+
+| File | What it shows | Language |
 |:--|:--|:--|
-| `src/A_SoloTipos.hs` | Con `IO` el tipo no dice qué se usa. Los registros de funciones nombran las capacidades, y sobre una mónada abstracta además las hacen cumplir. | Haskell 2010 |
-| `src/B_TaglessFinal.hs` | Capacidades como clases de un parámetro. GHC **infiere** qué capacidades usa cada función. Dos intérpretes: IO y uno puro para pruebas. | Haskell 2010 |
-| `src/C1_Transformers.hs` | Una pila concreta de `transformers`, con `lift` a mano. | Haskell 2010 |
-| `src/C2_Mtl.hs` | Estilo mtl: la misma pila detrás de clases. Una capacidad propia que atraviesa la pila. | Haskell 2010 + `FlexibleContexts` |
-| `src/D_FilasDeEfectos.hs` y `src/Efectos.hs` | Un sistema de efectos con filas hecho a mano, en unas 120 líneas: la fila es una lista a nivel de tipos. | Haskell 2010 + 7 extensiones |
-| `debe-fallar/B_CapacidadNoConcedida.hs` | La firma concede red y consola, y el cuerpo lee un archivo. | Haskell 2010 |
-| `debe-fallar/B_IODirecto.hs` | Con la mónada abstracta, ni siquiera se puede usar IO directamente. | Haskell 2010 |
-| `debe-fallar/B_InterpreteSinCapacidad.hs` | El programa pide archivos y el intérprete no los concede. | Haskell 2010 |
-| `debe-fallar/D_EfectoFueraDeLaFila.hs` | La fila sólo tiene red, y el cuerpo imprime. | con extensiones |
+| `src/A_TypesOnly.hs` | With `IO` the type does not say what is used. Records of functions name the capabilities, and over an abstract monad they also enforce them. | Haskell 2010 |
+| `src/B_TaglessFinal.hs` | Capabilities as single-parameter classes (from `src/Capabilities.hs`). GHC **infers** which capabilities each function uses. Two interpreters: IO and a pure one for testing. | Haskell 2010 |
+| `src/C1_Transformers.hs` | A concrete `transformers` stack, with `lift` by hand. | Haskell 2010 |
+| `src/C2_Mtl.hs` | mtl style: the same stack behind classes. A capability of our own that goes through the stack. | Haskell 2010 + `FlexibleContexts` |
+| `src/D_EffectRows.hs` and `src/Effects.hs` | A hand-made effect system with rows, in about 120 lines: the row is a type-level list. | Haskell 2010 + 7 extensions |
+| `must-fail/B_CapabilityNotGranted.hs` | The signature grants network and console, and the body reads a file. | Haskell 2010 |
+| `must-fail/B_DirectIO.hs` | With the abstract monad, not even IO can be used directly. | Haskell 2010 |
+| `must-fail/B_InterpreterLacksCapability.hs` | The program asks for files and the interpreter does not grant them. | Haskell 2010 |
+| `must-fail/D_EffectNotInRow.hs` | The row only has network, and the body prints. | with extensions |
 
-## Qué extensiones hacen falta, y por qué
+## Which extensions are needed, and why
 
-| Estilo | Extensiones | Por qué |
+| Style | Extensions | Why |
 |:--|:--|:--|
-| Tagless final con clases de un parámetro | ninguna | `class Monad m => Red m` es Haskell 2010 |
-| Transformadores (`transformers`) | ninguna | Las pilas son tipos comunes |
-| Estilo mtl | `FlexibleContexts` en el código que la usa | `MonadReader Config m` menciona un tipo concreto. La biblioteca, además, usa `MultiParamTypeClasses` y `FunctionalDependencies` |
-| Filas de efectos | `DataKinds`, `GADTs`, `KindSignatures`, `TypeOperators`, `MultiParamTypeClasses`, `FlexibleInstances`, `FlexibleContexts`, `EmptyCase` | La fila es una lista de tipos. Los efectos son GADTs. La pertenencia a la fila es una clase de dos parámetros con instancias superpuestas |
+| Tagless final with single-parameter classes | none | `class Monad m => Net m` is Haskell 2010 |
+| Transformers (`transformers`) | none | Stacks are ordinary types |
+| mtl style | `FlexibleContexts` in the code that uses it | `MonadReader Config m` mentions a concrete type. The library, in addition, uses `MultiParamTypeClasses` and `FunctionalDependencies` |
+| Effect rows | `DataKinds`, `GADTs`, `KindSignatures`, `TypeOperators`, `MultiParamTypeClasses`, `FlexibleInstances`, `FlexibleContexts`, `EmptyCase` | The row is a list of types. Effects are GADTs. Row membership is a two-parameter class with overlapping instances |
 
-Una aclaración sobre «Haskell 2010»: el informe de 2010 no tiene `Applicative` como superclase
-de `Monad`, y GHC sí. Los ejemplos escriben esa instancia, como pide el GHC actual.
+A clarification about "Haskell 2010": the 2010 report does not have `Applicative` as a superclass
+of `Monad`, and GHC does. The examples write that instance, as current GHC requires.
 
-## La página explicativa
+## The explanatory page
 
-`artefacto/capacidades.html` explica los cuatro estilos y los compara. Se publicó como artefacto
-en https://claude.ai/artifact/TDu94XyfdQX54Eak8AyqLp. No se edita a mano: se genera desde
-`artefacto/plantilla.html` con
+The guide is published at https://sawady.github.io/capacidades-haskell/. Its source is
+`site/index.html`, a single HTML file with no scripts and no external dependencies. It is not
+edited by hand: it is generated from `site/template.html` with
 
 ```
-./compilar.sh && python3 artefacto/generar.py
+./build.sh && python3 site/build.py
 ```
 
-El generador inserta en la plantilla los fragmentos de `src/`, `debe-fallar/` y `salidas/`, así
-que el código y los errores de la página son siempre los que compila el script.
+The generator inserts into the template the fragments of `src/`, `must-fail/` and `outputs/`, and
+highlights the Haskell code, so the code and the errors on the page are always the ones the script
+compiles. `.github/workflows/pages.yml` publishes it to GitHub Pages.
 
-## Contribuir
+## Contributing
 
-Los issues son bienvenidos: ver [`CONTRIBUTING.md`](CONTRIBUTING.md). Los cambios están en
+Issues are welcome: see [`CONTRIBUTING.md`](CONTRIBUTING.md). Changes are listed in
 [`CHANGELOG.md`](CHANGELOG.md).
 
-## Apoyar el proyecto
+## Sponsoring
 
-Este proyecto es software libre. Si te resulta útil, podés apoyar su desarrollo con
+This project is free software. If it is useful to you, you can support its development through
 [GitHub Sponsors](https://github.com/sponsors/sawady).
 
-## Licencia
+## License
 
-- El código (`src/`, `debe-fallar/`, `compilar.sh`, `artefacto/generar.py` y el CI) está bajo
-  licencia MIT: ver [`LICENSE`](LICENSE).
-- El texto (este README, `README.en.md` y la página explicativa, `artefacto/plantilla.html` y
-  `artefacto/capacidades.html`) está bajo
-  [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/deed.es): ver
-  [`LICENSE-docs`](LICENSE-docs). Los fragmentos de código que aparecen en el texto siguen bajo MIT.
+- The code (`src/`, `must-fail/`, `build.sh`, `site/build.py` and the CI workflows) is under the
+  BSD 3-Clause license: see [`LICENSE`](LICENSE).
+- The text (this README and the explanatory page, `site/template.html` and `site/index.html`) is
+  under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/): see
+  [`LICENSE-docs`](LICENSE-docs). Code fragments that appear in the text remain under BSD 3-Clause.
