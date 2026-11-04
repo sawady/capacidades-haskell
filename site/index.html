@@ -220,7 +220,7 @@ summaryWithFile
   <p>For the thesis, the decisive row is the second one. With classes, the set of capabilities of a half-written program comes out of inference. With records, the oracle would have to track which arguments are used, which is also possible but is work of its own.</p>
 
   <h2>3. Monad transformers</h2>
-  <p>This is the line of work of the research group the thesis belongs to. Each layer of the stack provides a capability, and the type names the concrete stack, in a fixed order.</p>
+  <p>This is the line of work of the UNQ research group the thesis belongs to. Each layer of the stack provides a capability, and the type names the concrete stack, in a fixed order.</p>
   <figure class="code">
     <figcaption>src/C1_Transformers.hs <span class="chip h2010">Haskell 2010</span></figcaption>
     <pre><code><span class="kw">type</span> <span class="ty">App</span> = <span class="ty">ReaderT</span> <span class="ty">Config</span> (<span class="ty">StateT</span> <span class="ty">Int</span> <span class="ty">IO</span>)
@@ -318,7 +318,7 @@ handleNet pages (<span class="ty">Request</span> (<span class="ty">There</span> 
   <h2>What suits the thesis</h2>
   <ol>
     <li><strong>Write the programs in tagless final, with single-parameter classes.</strong> It is Haskell 2010 with no extensions, inference is decidable and GHC computes the set of capabilities of each fragment. That is what the oracle needs.</li>
-    <li><strong>Build the interpreters with transformers.</strong> It is the research group's existing line of work and it fits without conflict, as the mtl example shows.</li>
+    <li><strong>Build the interpreters with transformers.</strong> It is the existing line of work of the UNQ research group and it fits without conflict, as the mtl example shows.</li>
     <li><strong>Leave out of the subset everything that gives back ambient authority:</strong> <code>IO</code> in signatures, <code>MonadIO</code> and <code>unsafePerformIO</code>. Otherwise the capabilities can be bypassed.</li>
     <li><strong>Use effect rows as a point of comparison</strong> in the theoretical framework. They are more expressive, because a handler can reinterpret an effect, but they require extensions and a more complex type system for the oracle.</li>
   </ol>
