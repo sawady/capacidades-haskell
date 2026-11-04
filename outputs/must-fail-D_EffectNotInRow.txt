@@ -1,0 +1,21 @@
+must-fail/D_EffectNotInRow.hs:11:3: error: [GHC-39999]
+    • Could not deduce ‘Member Console es’
+        arising from a use of ‘printLine’
+      from the context: Member Net es
+        bound by the type signature for:
+                   netOnly :: forall (es :: [* -> *]).
+                              Member Net es =>
+                              Url -> Eff es ()
+        at must-fail/D_EffectNotInRow.hs:8:1-44
+    • In a stmt of a 'do' block: printLine page
+      In the expression:
+        do page <- httpGet url
+           printLine page
+      In an equation for ‘netOnly’:
+          netOnly url
+            = do page <- httpGet url
+                 printLine page
+   |
+11 |   printLine page
+   |   ^^^^^^^^^
+

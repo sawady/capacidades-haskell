@@ -1,0 +1,66 @@
+# Runs ./build.sh with several GHC versions. Fails if an example in src/ does
+# not compile or does not run, if anything in must-fail/ compiles, or if the
+# outputs differ from the ones in the repository.
+#
+# outputs/ and site/index.html are generated with the reference version
+# (9.12.2) and compared exactly with that version. With the other versions
+# GHC's error messages only differ in blank lines, so they are compared
+# ignoring them (and without outputs/ghc-version.txt). 9.14 is experimental:
+# if it fails, CI does not break. Today it compiles and rejects what it
+# should, but `ghc -e ':t'` shows [Char] instead of the synonyms Url and
+# FilePath, so outputs/B_inferred-types.txt does not match.
+name: build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: GHC ${{ matrix.ghc }}
+    runs-on: ubuntu-latest
+    continue-on-error: ${{ matrix.experimental == true }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - ghc: '9.6.7'
+          - ghc: '9.8.4'
+          - ghc: '9.10.3'
+          - ghc: '9.12.2'
+            reference: true
+          - ghc: '9.14.1'
+            experimental: true
+    env:
+      LANG: C.UTF-8
+    steps:
+      - uses: actions/checkout@v5
+
+      - id: setup
+        uses: haskell-actions/setup@v2
+        with:
+          ghc-version: ${{ matrix.ghc }}
+
+      - name: Build, run, and check must-fail/
+        run: ./build.sh
+        env:
+          GHC: ${{ steps.setup.outputs.ghc-exe }}
+
+      - name: Compare outputs/ and the page (reference version, exact)
+        if: matrix.reference
+        run: |
+          python3 site/build.py
+          git diff --exit-code -- outputs site/index.html
+
+      - name: Compare outputs/ (ignoring blank lines and the GHC version)
+        if: ${{ !matrix.reference }}
+        # git diff --exit-code does not honor --ignore-blank-lines in every
+        # git version: check whether the diff is empty instead.
+        run: |
+          differences=$(git diff --ignore-blank-lines -- outputs ':!outputs/ghc-version.txt')
+          if [ -n "$differences" ]; then echo "$differences"; exit 1; fi

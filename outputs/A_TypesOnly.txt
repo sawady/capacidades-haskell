@@ -1,0 +1,7 @@
+1. IO only:
+<title of https://example.org>
+  (read 2 environment variables without permission)
+2. Records over IO:
+<title of https://example.org>
+3. Records over an abstract monad:
+<title of https://example.org>

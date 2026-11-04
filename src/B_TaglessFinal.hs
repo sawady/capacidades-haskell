@@ -1,34 +1,34 @@
 {-# LANGUAGE Haskell2010 #-}
--- Las funciones sin firma son a propósito: muestran lo que GHC infiere.
+-- The functions without signatures are on purpose: they show what GHC infers.
 {-# OPTIONS_GHC -Wno-missing-signatures #-}
--- | B. Tagless final: capacidades como clases de tipos.
+-- | B. Tagless final: capabilities as type classes.
 --
--- El mismo programa que en A, pero las capacidades llegan por restricciones
--- de clase en lugar de argumentos. Es Haskell 2010 sin extensiones.
+-- The same program as in A, but the capabilities arrive as class
+-- constraints instead of arguments. This is Haskell 2010 with no extensions.
 module Main (main) where
 
-import Capacidades
+import Capabilities
 import Control.Monad.Trans.State (State, modify, runState)
 
--- | Sin firma de tipos a propósito: GHC infiere
--- @resumen :: (Red m, Consola m) => Url -> m ()@.
--- Las restricciones inferidas son exactamente las capacidades que usa el
--- código. Eso es lo que el oráculo de la tesis necesita saber.
-resumen url = do
-  pagina <- httpGet url
-  imprimir (primeraLinea pagina)
+-- | No type signature on purpose: GHC infers
+-- @summary :: (Net m, Console m) => Url -> m ()@.
+-- The inferred constraints are exactly the capabilities the code uses.
+-- That is what the thesis's oracle needs to know.
+summary url = do
+  page <- httpGet url
+  printLine (firstLine page)
 
--- | Usa también archivos: GHC infiere @(Red m, Archivos m, Consola m)@.
-resumenConArchivo url ruta = do
-  pagina <- httpGet url
-  nota <- leerArchivo ruta
-  imprimir (primeraLinea pagina ++ " / " ++ nota)
+-- | Also uses files: GHC infers @(Net m, Files m, Console m)@.
+summaryWithFile url path = do
+  page <- httpGet url
+  note <- readTextFile path
+  printLine (firstLine page ++ " / " ++ note)
 
--- * Intérprete 1: IO
+-- * Interpreter 1: IO
 
--- | Una mónada propia sobre IO. Sólo tiene las capacidades para las que
--- escribimos una instancia: no hay instancia de 'Archivos' para 'App'.
-newtype App a = App { correrApp :: IO a }
+-- | Our own monad over IO. It only has the capabilities we wrote an
+-- instance for: there is no 'Files' instance for 'App'.
+newtype App a = App { runApp :: IO a }
 
 instance Functor App where
   fmap f (App io) = App (fmap f io)
@@ -38,46 +38,46 @@ instance Applicative App where
   App f <*> App x = App (f <*> x)
 
 instance Monad App where
-  App io >>= k = App (io >>= correrApp . k)
+  App io >>= k = App (io >>= runApp . k)
 
-instance Red App where
-  httpGet url = App (return ("<título de " ++ url ++ ">\nresto de la página"))
+instance Net App where
+  httpGet url = App (return ("<title of " ++ url ++ ">\nrest of the page"))
 
-instance Consola App where
-  imprimir = App . putStrLn
+instance Console App where
+  printLine = App . putStrLn
 
--- * Intérprete 2: puro, para pruebas
+-- * Interpreter 2: pure, for testing
 
--- | El mismo programa, interpretado sin IO: la consola acumula líneas en una
--- lista y la red responde desde una tabla fija.
-newtype Prueba a = Prueba { correrPrueba :: State [String] a }
+-- | The same program, interpreted without IO: the console collects lines in
+-- a list and the network answers from a fixed table.
+newtype Test a = Test { runTest :: State [String] a }
 
-instance Functor Prueba where
-  fmap f (Prueba s) = Prueba (fmap f s)
+instance Functor Test where
+  fmap f (Test s) = Test (fmap f s)
 
-instance Applicative Prueba where
-  pure = Prueba . pure
-  Prueba f <*> Prueba x = Prueba (f <*> x)
+instance Applicative Test where
+  pure = Test . pure
+  Test f <*> Test x = Test (f <*> x)
 
-instance Monad Prueba where
-  Prueba s >>= k = Prueba (s >>= correrPrueba . k)
+instance Monad Test where
+  Test s >>= k = Test (s >>= runTest . k)
 
-instance Red Prueba where
-  httpGet url = return ("página de prueba para " ++ url)
+instance Net Test where
+  httpGet url = return ("test page for " ++ url)
 
-instance Consola Prueba where
-  imprimir linea = Prueba (modify (++ [linea]))
+instance Console Test where
+  printLine line = Test (modify (++ [line]))
 
-instance Archivos Prueba where
-  leerArchivo ruta = return ("contenido simulado de " ++ ruta)
+instance Files Test where
+  readTextFile path = return ("simulated contents of " ++ path)
 
 main :: IO ()
 main = do
-  putStrLn "Intérprete IO:"
-  correrApp (resumen "https://www.unq.edu.ar")
-  putStrLn "Intérprete de prueba (salida capturada en una lista):"
-  let ((), salida) = runState (correrPrueba (resumen "https://www.unq.edu.ar")) []
-  mapM_ putStrLn salida
-  let ((), salida2) = runState (correrPrueba (resumenConArchivo "https://www.unq.edu.ar" "nota.txt")) []
-  mapM_ putStrLn salida2
-  -- correrApp (resumenConArchivo ...) no compila: App no concede Archivos.
+  putStrLn "IO interpreter:"
+  runApp (summary "https://example.org")
+  putStrLn "Test interpreter (output captured in a list):"
+  let ((), output) = runState (runTest (summary "https://example.org")) []
+  mapM_ putStrLn output
+  let ((), output2) = runState (runTest (summaryWithFile "https://example.org" "note.txt")) []
+  mapM_ putStrLn output2
+  -- runApp (summaryWithFile ...) does not compile: App does not grant Files.

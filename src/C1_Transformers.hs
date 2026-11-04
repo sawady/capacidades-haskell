@@ -1,40 +1,40 @@
 {-# LANGUAGE Haskell2010 #-}
--- | C1. Transformadores de mónadas con @transformers@, en Haskell 2010.
+-- | C1. Monad transformers with @transformers@, in Haskell 2010.
 --
--- Cada capa de la pila es una capacidad: 'ReaderT' da acceso a una
--- configuración, 'StateT' a un contador. El tipo nombra la pila concreta,
--- con un orden fijo, y para usar una capa interna hay que levantar a mano
--- con 'lift'.
+-- Each layer of the stack is a capability: 'ReaderT' gives access to a
+-- configuration, 'StateT' to a counter. The type names the concrete stack,
+-- in a fixed order, and using an inner layer means lifting by hand with
+-- 'lift'.
 module Main (main) where
 
-import Capacidades (Url, primeraLinea)
+import Capabilities (Url, firstLine)
 import Control.Monad.Trans.Class (lift)
 import Control.Monad.Trans.Reader (ReaderT, ask, runReaderT)
 import Control.Monad.Trans.State (StateT, get, modify, runStateT)
 
-data Config = Config { servidor :: Url }
+data Config = Config { server :: Url }
 
--- | La pila: configuración, encima de un contador, encima de IO.
+-- | The stack: configuration, on top of a counter, on top of IO.
 type App = ReaderT Config (StateT Int IO)
 
-bajar :: Url -> App String
-bajar url = do
-  lift (modify (+ 1))                     -- capa StateT: una capa abajo
-  return ("<título de " ++ url ++ ">\nresto")
+fetch :: Url -> App String
+fetch url = do
+  lift (modify (+ 1))                     -- StateT layer: one layer down
+  return ("<title of " ++ url ++ ">\nrest")
 
-resumen :: String -> App ()
-resumen ruta = do
-  cfg <- ask                               -- capa ReaderT: la de arriba
-  pagina <- bajar (servidor cfg ++ ruta)
+summary :: String -> App ()
+summary path = do
+  cfg <- ask                               -- ReaderT layer: the top one
+  page <- fetch (server cfg ++ path)
   n <- lift get
-  lift (lift (putStrLn (primeraLinea pagina ++ " (pedido " ++ show n ++ ")")))
-  -- IO está en el fondo de la pila: con lift (lift ...) se puede hacer
-  -- cualquier IO. Los transformadores ordenan las capacidades, pero no
-  -- sacan la autoridad ambiente de IO.
+  lift (lift (putStrLn (firstLine page ++ " (request " ++ show n ++ ")")))
+  -- IO is at the bottom of the stack: with lift (lift ...) any IO can be
+  -- done. Transformers put the capabilities in order, but they do not
+  -- remove the ambient authority of IO.
 
 main :: IO ()
 main = do
-  ((), pedidos) <- runStateT (runReaderT (resumen "/posgrado" >> resumen "/carreras") cfg) 0
-  putStrLn ("Pedidos hechos: " ++ show pedidos)
+  ((), requests) <- runStateT (runReaderT (summary "/docs" >> summary "/blog") cfg) 0
+  putStrLn ("Requests made: " ++ show requests)
   where
-    cfg = Config "https://www.unq.edu.ar"
+    cfg = Config "https://example.org"

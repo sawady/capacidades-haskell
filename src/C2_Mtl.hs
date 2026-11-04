@@ -1,40 +1,40 @@
 {-# LANGUAGE Haskell2010 #-}
 {-# LANGUAGE FlexibleContexts #-}
--- Las instancias de Red para los transformadores quedan acá para que el
--- ejemplo se lea completo; en un proyecto irían junto a la clase.
+-- The Net instances for the transformers stay here so that the example reads
+-- in one place; in a real project they would live next to the class.
 {-# OPTIONS_GHC -Wno-orphans #-}
--- | C2. Estilo mtl: transformadores detrás de clases.
+-- | C2. mtl style: transformers behind classes.
 --
--- Las clases de mtl ('MonadReader', 'MonadState') son tagless final con
--- clases de dos parámetros: @MonadReader Config m@ es «m puede leer una
--- Config». La biblioteca necesita MultiParamTypeClasses y
--- FunctionalDependencies; el código que la usa necesita FlexibleContexts,
--- porque la restricción menciona un tipo concreto ('Config').
+-- The mtl classes ('MonadReader', 'MonadState') are tagless final with
+-- two-parameter classes: @MonadReader Config m@ means "m can read a
+-- Config". The library needs MultiParamTypeClasses and
+-- FunctionalDependencies; the code that uses it needs FlexibleContexts,
+-- because the constraint mentions a concrete type ('Config').
 --
--- Además se ve cómo una capacidad propia ('Red') atraviesa la pila: hace
--- falta una instancia por cada transformador (el «problema n²» de mtl).
+-- It also shows how a capability of our own ('Net') goes through the stack:
+-- it takes one instance per transformer (mtl's "n² problem").
 module Main (main) where
 
-import Capacidades (Red (..), Url, primeraLinea)
+import Capabilities (Net (..), Url, firstLine)
 import Control.Monad.Reader (MonadReader, ReaderT, ask, runReaderT)
 import Control.Monad.State (MonadState, StateT, get, modify, runStateT)
 import Control.Monad.Trans.Class (lift)
 
-data Config = Config { servidor :: Url }
+data Config = Config { server :: Url }
 
--- | Sin pila concreta: pide las capacidades como restricciones. Es el mismo
--- programa que en C1, sin ningún 'lift'.
-resumen :: (MonadReader Config m, MonadState Int m, Red m) => String -> m String
-resumen ruta = do
+-- | No concrete stack: it asks for the capabilities as constraints. It is
+-- the same program as in C1, without a single 'lift'.
+summary :: (MonadReader Config m, MonadState Int m, Net m) => String -> m String
+summary path = do
   cfg <- ask
   modify (+ 1)
-  pagina <- httpGet (servidor cfg ++ ruta)
+  page <- httpGet (server cfg ++ path)
   n <- get
-  return (primeraLinea pagina ++ " (pedido " ++ show n ++ ")")
+  return (firstLine page ++ " (request " ++ show n ++ ")")
 
--- * Una base con la capacidad Red, y las instancias para atravesar la pila
+-- * A base monad with the Net capability, and the instances to go through the stack
 
-newtype Base a = Base { correrBase :: IO a }
+newtype Base a = Base { runBase :: IO a }
 
 instance Functor Base where
   fmap f (Base io) = Base (fmap f io)
@@ -44,23 +44,23 @@ instance Applicative Base where
   Base f <*> Base x = Base (f <*> x)
 
 instance Monad Base where
-  Base io >>= k = Base (io >>= correrBase . k)
+  Base io >>= k = Base (io >>= runBase . k)
 
-instance Red Base where
-  httpGet url = Base (return ("<título de " ++ url ++ ">\nresto"))
+instance Net Base where
+  httpGet url = Base (return ("<title of " ++ url ++ ">\nrest"))
 
--- | Una instancia por transformador para que Red atraviese cada capa.
-instance Red m => Red (ReaderT r m) where
+-- | One instance per transformer, so that Net goes through each layer.
+instance Net m => Net (ReaderT r m) where
   httpGet = lift . httpGet
 
-instance Red m => Red (StateT s m) where
+instance Net m => Net (StateT s m) where
   httpGet = lift . httpGet
 
 main :: IO ()
 main = do
-  (lineas, pedidos) <- correrBase (runStateT (runReaderT programa cfg) 0)
-  mapM_ putStrLn lineas
-  putStrLn ("Pedidos hechos: " ++ show pedidos)
+  (results, requests) <- runBase (runStateT (runReaderT program cfg) 0)
+  mapM_ putStrLn results
+  putStrLn ("Requests made: " ++ show requests)
   where
-    cfg = Config "https://www.unq.edu.ar"
-    programa = mapM resumen ["/posgrado", "/carreras"]
+    cfg = Config "https://example.org"
+    program = mapM summary ["/docs", "/blog"]
