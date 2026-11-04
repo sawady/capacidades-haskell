@@ -1,6 +1,6 @@
 # Capabilities in Haskell
 
-[![build](https://github.com/sawady/capacidades-haskell/actions/workflows/build.yml/badge.svg)](https://github.com/sawady/capacidades-haskell/actions/workflows/build.yml)
+[![build](https://github.com/sawady/haskell-capabilities/actions/workflows/build.yml/badge.svg)](https://github.com/sawady/haskell-capabilities/actions/workflows/build.yml)
 [![Sponsor](https://img.shields.io/github/sponsors/sawady?label=Sponsor&logo=GitHub)](https://github.com/sponsors/sawady)
 
 Four ways of stating, in the type of a Haskell program, which resources it may use:
@@ -13,7 +13,7 @@ Four ways of stating, in the type of a Haskell program, which resources it may u
 All the examples solve the same problem: download a page and print its first line.
 The network is simulated.
 
-**Read the guide:** https://sawady.github.io/capacidades-haskell/ explains the four styles and
+**Read the guide:** https://sawady.github.io/haskell-capabilities/ explains the four styles and
 compares them, with the code and the GHC errors from this repository.
 
 This is supporting material for the doctoral plan «Restringir antes que validar» ("Restrict before
@@ -21,8 +21,8 @@ validating", Universidad Nacional de Quilmes, UNQ). The thesis needs a program's
 (network, files, console) to be in its type, so that an oracle can reject whatever was not granted
 while a language model writes the code.
 
-The project was originally written in Spanish; that version is in the git history at commit
-`4d808dd`.
+The project was originally written in Spanish, as `capacidades-haskell`; that version is kept
+at the tag [`v-es`](https://github.com/sawady/haskell-capabilities/tree/v-es) (commit `4d808dd`).
 
 ## How to run it
 
@@ -83,7 +83,7 @@ of `Monad`, and GHC does. The examples write that instance, as current GHC requi
 
 ## The explanatory page
 
-The guide is published at https://sawady.github.io/capacidades-haskell/. Its source is
+The guide is published at https://sawady.github.io/haskell-capabilities/. Its source is
 `site/index.html`, a single HTML file with no scripts and no external dependencies. It is not
 edited by hand: it is generated from `site/template.html` with
 

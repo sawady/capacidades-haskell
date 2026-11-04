@@ -45,4 +45,4 @@ released versions yet.
 - `outputs/A_TypesOnly.txt` changed from one machine to another (it counts the environment
   variables): the examples now run with a fixed environment.
 
-[Unreleased]: https://github.com/sawady/capacidades-haskell/commits/main
+[Unreleased]: https://github.com/sawady/haskell-capabilities/commits/main
