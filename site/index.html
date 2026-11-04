@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="Four ways of stating, in the type of a Haskell program, which resources it may use: types only, tagless final, monad transformers and effect rows.">
+<title>Capabilities in the Type</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%235e5086'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' text-anchor='middle' fill='white'%3E%CE%BB%3C/text%3E%3C/svg%3E">
+<style>
+  /* Layout: a single reading column (~74ch); code blocks and tables may be
+     wider and scroll inside their own box. The accent is the purple of the
+     Haskell logo. Only system fonts, so the page has no external
+     dependencies. */
+  :root {
+    --paper: #f7f7fa;
+    --ink: #1f1d2b;
+    --muted: #5d5a70;
+    --rule: #dcdae6;
+    --accent: #5e5086;
+    --code-bg: #efedf5;
+    --ok: #2f6b45;
+    --bad: #9b2f2f;
+    --tok-kw: #7a3f8f;
+    --tok-type: #2c5d8a;
+    --tok-str: #6b5414;
+    --tok-com: #6e6b82;
+    --f-head: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+    --f-body: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --f-mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #16151d; --ink: #e4e2ee; --muted: #a29fb6; --rule: #2e2c3b;
+      --accent: #b3a4e6; --code-bg: #1f1d29; --ok: #7cc79a; --bad: #ec8f8f;
+      --tok-kw: #d39ae6; --tok-type: #8ec0ea; --tok-str: #e2c17a; --tok-com: #8d8aa3;
+      color-scheme: dark;
+    }
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--paper); color: var(--ink);
+    font: 17px/1.6 var(--f-body);
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 40px 72px;
+  }
+  main { max-width: 74ch; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+  header { display: flex; flex-direction: column; gap: 10px; padding-bottom: 20px; border-bottom: 1px solid var(--rule); }
+  .eyebrow { font: 600 12px/1.4 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+  h1 { font: 600 clamp(30px, 5vw, 42px)/1.15 var(--f-head); margin: 0; text-wrap: balance; }
+  h2 { font: 600 25px/1.25 var(--f-head); margin: 30px 0 0; text-wrap: balance; }
+  h3 { font: 600 18px/1.3 var(--f-body); margin: 10px 0 0; }
+  p { margin: 0; }
+  .lead { font-size: 19px; color: var(--ink); }
+  .meta { font-size: 15px; color: var(--muted); }
+  a { color: var(--accent); }
+  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  code { font: 0.86em var(--f-mono); background: var(--code-bg); padding: 1px 5px; border-radius: 3px; }
+  ul, ol { margin: 0; padding-left: 1.3em; display: flex; flex-direction: column; gap: 6px; }
+
+  figure.code { margin: 4px 0; display: flex; flex-direction: column; min-width: 0; }
+  figure.code figcaption {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+    font: 12.5px/1.4 var(--f-mono); color: var(--muted);
+    padding: 7px 12px; border: 1px solid var(--rule); border-bottom: 0; border-radius: 6px 6px 0 0;
+  }
+  .chip { font: 600 11px/1 var(--f-mono); letter-spacing: .04em; padding: 4px 7px; border-radius: 99px; border: 1px solid currentColor; white-space: nowrap; }
+  .chip.h2010 { color: var(--accent); }
+  .chip.ext { color: var(--tok-str); }
+  .chip.fails { color: var(--bad); }
+  .chip.output { color: var(--ok); }
+  pre {
+    margin: 0; overflow-x: auto; background: var(--code-bg);
+    border: 1px solid var(--rule); border-radius: 0 0 6px 6px;
+    padding: 12px 14px; font: 13.5px/1.55 var(--f-mono); tab-size: 2;
+  }
+  pre code { background: none; padding: 0; font: inherit; }
+  pre.error { color: var(--bad); }
+  pre.out { color: var(--ok); }
+  .kw { color: var(--tok-kw); }
+  .ty { color: var(--tok-type); }
+  .str { color: var(--tok-str); }
+  .com { color: var(--tok-com); font-style: italic; }
+
+  .table { overflow-x: auto; margin: 4px 0; }
+  table { border-collapse: collapse; font-size: 15px; min-width: 640px; width: 100%; }
+  th, td { text-align: left; vertical-align: top; padding: 8px 10px; border-bottom: 1px solid var(--rule); }
+  thead th { font: 600 12px/1.4 var(--f-mono); letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+  tbody th { font-weight: 600; white-space: nowrap; }
+  .yes { color: var(--ok); font-weight: 600; }
+  .no { color: var(--bad); font-weight: 600; }
+
+  .note { border-left: 3px solid var(--accent); padding: 4px 0 4px 14px; }
+  footer { margin-top: 28px; padding-top: 16px; border-top: 1px solid var(--rule); font-size: 14.5px; color: var(--muted); display: flex; flex-direction: column; gap: 6px; }
+  @media (max-width: 480px) {
+    body { font-size: 16px; padding-block: 24px 48px; }
+    .lead { font-size: 17.5px; }
+    h2 { font-size: 22px; }
+    pre { font-size: 12.5px; padding: 10px 12px; }
+    tbody th { white-space: normal; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="eyebrow">UNQ PhD · supporting material</div>
+    <h1>Capabilities in the type</h1>
+    <p class="lead">The thesis needs a program's type to say which resources it may use: the network, files, the console. With that, an oracle can reject whatever was not granted while a language model writes the code. This page compares four ways of achieving it in Haskell, with the same problem in all of them: download a page and print its first line.</p>
+    <p class="meta">All the code on this page comes from the repository <a href="https://github.com/sawady/capacidades-haskell"><code>sawady/capacidades-haskell</code></a> and compiles with GHC 9.12.2. The errors shown are the ones GHC gives.</p>
+  </header>
+
+  <h2>The starting point: IO allows everything</h2>
+  <p>In Haskell, the type <code>IO ()</code> says that the function does input and output, but not which. This version, besides downloading the page, reads the process's environment variables, and its type does not change.</p>
+  <figure class="code">
+    <figcaption>src/A_TypesOnly.hs <span class="chip h2010">Haskell 2010</span></figcaption>
+    <pre><code>summaryIO :: (<span class="ty">Url</span> -&gt; <span class="ty">IO</span> <span class="ty">String</span>) -&gt; <span class="ty">Url</span> -&gt; <span class="ty">IO</span> ()
+summaryIO fetch url = <span class="kw">do</span>
+  page &lt;- fetch url
+  putStrLn (firstLine page)
+  env &lt;- getEnvironment
+  putStrLn (<span class="str">"  (read "</span> ++ show (length env) ++ <span class="str">" environment variables without permission)"</span>)</code></pre>
+  </figure>
+  <figure class="code">
+    <figcaption>output <span class="chip output">runs</span></figcaption>
+    <pre class="out">1. IO only:
+&lt;title of https://example.org&gt;
+  (read 2 environment variables without permission)</pre>
+  </figure>
+  <p>This is called <strong>ambient authority</strong>: the code can do anything the process can do, without anyone having granted it. The four approaches that follow try to remove it.</p>
+
+  <h2>1. Types only: capabilities as arguments</h2>
+  <p>The most direct way is to pass each capability as a value: a record with the functions that implement it. If the result is still <code>IO</code>, the type names the capabilities but does not enforce them. The important change is to make the monad abstract:</p>
+  <figure class="code">
+    <figcaption>src/A_TypesOnly.hs <span class="chip h2010">Haskell 2010</span></figcaption>
+    <pre><code><span class="kw">data</span> <span class="ty">Net</span> m = <span class="ty">Net</span> { httpGet :: <span class="ty">Url</span> -&gt; m <span class="ty">String</span> }
+
+<span class="kw">data</span> <span class="ty">Console</span> m = <span class="ty">Console</span> { printLine :: <span class="ty">String</span> -&gt; m () }
+
+summary :: <span class="ty">Monad</span> m =&gt; <span class="ty">Net</span> m -&gt; <span class="ty">Console</span> m -&gt; <span class="ty">Url</span> -&gt; m ()
+summary net console url = <span class="kw">do</span>
+  page &lt;- httpGet net url
+  printLine console (firstLine page)</code></pre>
+  </figure>
+  <p>Since the function does not know what <code>m</code> is, it can only do what the records give it. This is plain Haskell 2010 and it already solves the safety problem. What it does not give is convenience: each capability is passed by hand in every call, and a function's type lists the records in a fixed order.</p>
+
+  <h2>2. Tagless final: capabilities as type classes</h2>
+  <p>Instead of passing records, each capability is a single-parameter type class. A function that needs the network asks for <code>Net m</code>, and the compiler finds the implementation.</p>
+  <figure class="code">
+    <figcaption>src/Capabilities.hs <span class="chip h2010">Haskell 2010</span></figcaption>
+    <pre><code><span class="kw">class</span> <span class="ty">Monad</span> m =&gt; <span class="ty">Net</span> m <span class="kw">where</span>
+  httpGet :: <span class="ty">Url</span> -&gt; m <span class="ty">String</span>
+
+<span class="kw">class</span> <span class="ty">Monad</span> m =&gt; <span class="ty">Console</span> m <span class="kw">where</span>
+  printLine :: <span class="ty">String</span> -&gt; m ()
+
+<span class="kw">class</span> <span class="ty">Monad</span> m =&gt; <span class="ty">Files</span> m <span class="kw">where</span>
+  readTextFile :: <span class="ty">FilePath</span> -&gt; m <span class="ty">String</span></code></pre>
+  </figure>
+  <figure class="code">
+    <figcaption>src/B_TaglessFinal.hs, no signatures on purpose <span class="chip h2010">Haskell 2010</span></figcaption>
+    <pre><code>summary url = <span class="kw">do</span>
+  page &lt;- httpGet url
+  printLine (firstLine page)
+
+<span class="com">-- | Also uses files: GHC infers @(Net m, Files m, Console m)@.</span>
+summaryWithFile url path = <span class="kw">do</span>
+  page &lt;- httpGet url
+  note &lt;- readTextFile path
+  printLine (firstLine page ++ <span class="str">" / "</span> ++ note)</code></pre>
+  </figure>
+  <p>Neither function has a signature, and GHC infers exactly the capabilities each one uses:</p>
+  <figure class="code">
+    <figcaption>types inferred by GHC <span class="chip output">ghc -e ':t ...'</span></figcaption>
+    <pre class="out">summary :: (Net m, Console m) =&gt; Url -&gt; m ()
+summaryWithFile
+  :: (Net m, Files m, Console m) =&gt; Url -&gt; FilePath -&gt; m ()</pre>
+  </figure>
+  <p class="note">This is what matters most to the thesis. The set of capabilities a fragment uses comes out of type inference, which is decidable in Haskell 2010. The oracle only has to compare that set with the grant.</p>
+  <p>The interpreter is a concrete monad with instances for some capabilities. Choosing the interpreter is choosing what is granted. There is one over IO and a pure one for testing, and the same program runs in both without changes.</p>
+
+  <h3>What GHC rejects</h3>
+  <figure class="code">
+    <figcaption>must-fail/B_CapabilityNotGranted.hs: the signature grants network and console, the body reads a file <span class="chip fails">does not compile</span></figcaption>
+    <pre class="error">must-fail/B_CapabilityNotGranted.hs:11:13: error: [GHC-39999]
+    • Could not deduce ‘Files m’ arising from a use of ‘readTextFile’
+      from the context: (Net m, Console m)</pre>
+  </figure>
+  <figure class="code">
+    <figcaption>must-fail/B_DirectIO.hs: with the abstract monad, IO cannot be used <span class="chip fails">does not compile</span></figcaption>
+    <pre class="error">must-fail/B_DirectIO.hs:12:3: error: [GHC-25897]
+    • Couldn't match type ‘m’ with ‘IO’
+      Expected: m ()
+        Actual: IO ()</pre>
+  </figure>
+  <figure class="code">
+    <figcaption>must-fail/B_InterpreterLacksCapability.hs: the interpreter does not grant files <span class="chip fails">does not compile</span></figcaption>
+    <pre class="error">must-fail/B_InterpreterLacksCapability.hs:34:16: error: [GHC-39999]
+    • No instance for ‘Files App’</pre>
+  </figure>
+
+  <h2>Why classes and not just types?</h2>
+  <p>Records over an abstract monad (section 1) already give the same safety. The difference is in who does the work:</p>
+  <div class="table">
+    <table>
+      <thead><tr><th></th><th>Records of functions</th><th>Type classes</th></tr></thead>
+      <tbody>
+        <tr><th>Who passes the capabilities</th><td>The programmer, as arguments, in every call</td><td>The compiler, through instance resolution</td></tr>
+        <tr><th>Which capabilities a function uses</th><td>The ones it receives; they have to be declared</td><td><span class="yes">GHC infers them</span></td></tr>
+        <tr><th>How they combine</th><td>A list of arguments, in order</td><td>A set of constraints, unordered</td></tr>
+        <tr><th>Two implementations at once</th><td><span class="yes">Yes</span>, by passing two different records</td><td>One per monad; for another, another interpreter</td></tr>
+        <tr><th>For a model that generates code</th><td>It has to carry the records through the whole program</td><td>It writes the code directly; the capabilities are deduced</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>For the thesis, the decisive row is the second one. With classes, the set of capabilities of a half-written program comes out of inference. With records, the oracle would have to track which arguments are used, which is also possible but is work of its own.</p>
+
+  <h2>3. Monad transformers</h2>
+  <p>This is the line of work of the research group the thesis belongs to. Each layer of the stack provides a capability, and the type names the concrete stack, in a fixed order.</p>
+  <figure class="code">
+    <figcaption>src/C1_Transformers.hs <span class="chip h2010">Haskell 2010</span></figcaption>
+    <pre><code><span class="kw">type</span> <span class="ty">App</span> = <span class="ty">ReaderT</span> <span class="ty">Config</span> (<span class="ty">StateT</span> <span class="ty">Int</span> <span class="ty">IO</span>)
+
+fetch :: <span class="ty">Url</span> -&gt; <span class="ty">App</span> <span class="ty">String</span>
+fetch url = <span class="kw">do</span>
+  lift (modify (+ <span class="str">1</span>))                     <span class="com">-- StateT layer: one layer down</span>
+  return (<span class="str">"&lt;title of "</span> ++ url ++ <span class="str">"&gt;\nrest"</span>)
+
+summary :: <span class="ty">String</span> -&gt; <span class="ty">App</span> ()
+summary path = <span class="kw">do</span>
+  cfg &lt;- ask                               <span class="com">-- ReaderT layer: the top one</span>
+  page &lt;- fetch (server cfg ++ path)
+  n &lt;- lift get
+  lift (lift (putStrLn (firstLine page ++ <span class="str">" (request "</span> ++ show n ++ <span class="str">")"</span>)))
+  <span class="com">-- IO is at the bottom of the stack: with lift (lift ...) any IO can be</span>
+  <span class="com">-- done. Transformers put the capabilities in order, but they do not</span>
+  <span class="com">-- remove the ambient authority of IO.</span></code></pre>
+  </figure>
+  <p>The example shows two things. Using an inner layer means lifting by hand with <code>lift</code>, as many times as there are layers above it. And since IO is at the bottom of the stack, <code>lift (lift ...)</code> reaches any IO operation: transformers put the capabilities in order, but they do not remove ambient authority.</p>
+
+  <h3>The mtl style is tagless final</h3>
+  <p>The mtl classes, such as <code>MonadReader</code> and <code>MonadState</code>, are exactly the idea of section 2: <code>MonadReader Config m</code> means "m can read a Config". The difference is that they have two parameters, so they require extensions.</p>
+  <figure class="code">
+    <figcaption>src/C2_Mtl.hs <span class="chip ext">+ FlexibleContexts</span></figcaption>
+    <pre><code>summary :: (<span class="ty">MonadReader</span> <span class="ty">Config</span> m, <span class="ty">MonadState</span> <span class="ty">Int</span> m, <span class="ty">Net</span> m) =&gt; <span class="ty">String</span> -&gt; m <span class="ty">String</span>
+summary path = <span class="kw">do</span>
+  cfg &lt;- ask
+  modify (+ <span class="str">1</span>)
+  page &lt;- httpGet (server cfg ++ path)
+  n &lt;- get
+  return (firstLine page ++ <span class="str">" (request "</span> ++ show n ++ <span class="str">")"</span>)</code></pre>
+  </figure>
+  <p>A capability of our own, such as <code>Net</code>, lives alongside the mtl ones. For it to go through the stack it takes one instance per transformer, which is known as the n² instances problem:</p>
+  <figure class="code">
+    <figcaption>src/C2_Mtl.hs <span class="chip ext">+ FlexibleContexts</span></figcaption>
+    <pre><code><span class="kw">instance</span> <span class="ty">Net</span> m =&gt; <span class="ty">Net</span> (<span class="ty">ReaderT</span> r m) <span class="kw">where</span>
+  httpGet = lift . httpGet
+
+<span class="kw">instance</span> <span class="ty">Net</span> m =&gt; <span class="ty">Net</span> (<span class="ty">StateT</span> s m) <span class="kw">where</span>
+  httpGet = lift . httpGet</code></pre>
+  </figure>
+  <p class="note">The consequence for the thesis: there is no need to choose between tagless final and transformers. Programs are written with capabilities as classes, and interpreters are built with transformer stacks, as in this example. What has to be avoided is <code>MonadIO</code>, which gives back the full ambient authority.</p>
+
+  <h2>4. Effect systems with rows</h2>
+  <p>Here the computation carries a <strong>row</strong> in its type: the list of effects it may use. <code>Eff es a</code> is a computation that produces an <code>a</code> using the effects in <code>es</code>. The function below is polymorphic in the row: it works in any row that contains <code>Net</code> and <code>Console</code>. That is row polymorphism.</p>
+  <figure class="code">
+    <figcaption>src/D_EffectRows.hs <span class="chip ext">+ FlexibleContexts</span></figcaption>
+    <pre><code>summary :: (<span class="ty">Member</span> <span class="ty">Net</span> es, <span class="ty">Member</span> <span class="ty">Console</span> es) =&gt; <span class="ty">Url</span> -&gt; <span class="ty">Eff</span> es ()
+summary url = <span class="kw">do</span>
+  page &lt;- httpGet url
+  printLine (takeWhile (/= <span class="str">'\n'</span>) page)</code></pre>
+  </figure>
+  <p>Effects only declare operations. What they do is decided by a <strong>handler</strong>, which removes one effect from the row and interprets it. When the row is empty, the computation is pure.</p>
+  <figure class="code">
+    <figcaption>src/Effects.hs <span class="chip ext">+ 7 extensions</span></figcaption>
+    <pre><code><span class="kw">data</span> <span class="ty">Net</span> a <span class="kw">where</span>
+  <span class="ty">HttpGet</span> :: <span class="ty">Url</span> -&gt; <span class="ty">Net</span> <span class="ty">String</span>
+
+<span class="kw">data</span> <span class="ty">Console</span> a <span class="kw">where</span>
+  <span class="ty">PrintLine</span> :: <span class="ty">String</span> -&gt; <span class="ty">Console</span> ()</code></pre>
+  </figure>
+  <figure class="code">
+    <figcaption>src/Effects.hs: the Net handler <span class="chip ext">+ 7 extensions</span></figcaption>
+    <pre><code>handleNet :: (<span class="ty">Url</span> -&gt; <span class="ty">String</span>) -&gt; <span class="ty">Eff</span> (<span class="ty">Net</span> ': es) a -&gt; <span class="ty">Eff</span> es a
+handleNet _ (<span class="ty">Pure</span> a) = <span class="ty">Pure</span> a
+handleNet pages (<span class="ty">Request</span> (<span class="ty">Here</span> (<span class="ty">HttpGet</span> url)) k) = handleNet pages (k (pages url))
+handleNet pages (<span class="ty">Request</span> (<span class="ty">There</span> u) k) = <span class="ty">Request</span> u (handleNet pages . k)</code></pre>
+  </figure>
+  <p>The same program is run by applying the handlers in order. One interprets the console by collecting lines in a list, without IO. Another interprets it with real IO, which then has to be further down the row. Rejecting a capability that was not granted works just as with classes:</p>
+  <figure class="code">
+    <figcaption>must-fail/D_EffectNotInRow.hs: the row only has Net, the body prints <span class="chip fails">does not compile</span></figcaption>
+    <pre class="error">must-fail/D_EffectNotInRow.hs:11:3: error: [GHC-39999]
+    • Could not deduce ‘Member Console es’
+        arising from a use of ‘printLine’
+      from the context: Member Net es</pre>
+  </figure>
+  <p>In Haskell the row is a type-level list, which is why <code>DataKinds</code>, <code>GADTs</code>, <code>TypeOperators</code> and four other extensions are needed. A list has an order and can repeat elements, which a real row does not. Languages designed for this, such as Koka, write the row in the function's type, with a variable for "the rest of the effects", and treat it as a set. In Haskell, libraries such as effectful, polysemy and fused-effects provide it. The repository uses a minimal version, written by hand in about 120 lines, so that the mechanism can be seen without dependencies.</p>
+
+  <h2>The four, side by side</h2>
+  <div class="table">
+    <table>
+      <thead><tr><th></th><th>Records over <code>m</code></th><th>Tagless final</th><th>Transformers</th><th>mtl style</th><th>Effect rows</th></tr></thead>
+      <tbody>
+        <tr><th>Where the capability is</th><td>In the arguments</td><td>In the class constraints</td><td>In the layers of the stack</td><td>In the class constraints</td><td>In the row of <code>Eff</code></td></tr>
+        <tr><th>Removes ambient authority</th><td><span class="yes">Yes</span></td><td><span class="yes">Yes</span></td><td><span class="no">No</span>: IO is at the bottom</td><td><span class="yes">Yes</span>, except with <code>MonadIO</code></td><td><span class="yes">Yes</span>, unless IO is in the row</td></tr>
+        <tr><th>GHC infers the set used</th><td><span class="no">No</span></td><td><span class="yes">Yes</span></td><td><span class="no">No</span>: the stack is declared</td><td><span class="yes">Yes</span></td><td><span class="yes">Yes</span></td></tr>
+        <tr><th>Order matters</th><td>That of the arguments</td><td>No</td><td>Yes</td><td>Not in the program; yes in the interpreter's stack</td><td>Yes, when applying the handlers</td></tr>
+        <tr><th>Extensions</th><td>None</td><td>None</td><td>None</td><td><code>FlexibleContexts</code></td><td>Seven</td></tr>
+        <tr><th>Cost of using it</th><td>Carrying arguments around</td><td>One instance per capability and interpreter</td><td><code>lift</code> by hand</td><td>n² instances</td><td>Writing handlers</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>What suits the thesis</h2>
+  <ol>
+    <li><strong>Write the programs in tagless final, with single-parameter classes.</strong> It is Haskell 2010 with no extensions, inference is decidable and GHC computes the set of capabilities of each fragment. That is what the oracle needs.</li>
+    <li><strong>Build the interpreters with transformers.</strong> It is the research group's existing line of work and it fits without conflict, as the mtl example shows.</li>
+    <li><strong>Leave out of the subset everything that gives back ambient authority:</strong> <code>IO</code> in signatures, <code>MonadIO</code> and <code>unsafePerformIO</code>. Otherwise the capabilities can be bypassed.</li>
+    <li><strong>Use effect rows as a point of comparison</strong> in the theoretical framework. They are more expressive, because a handler can reinterpret an effect, but they require extensions and a more complex type system for the oracle.</li>
+  </ol>
+  <p>One limitation to keep in mind: with classes, the capability is "use the network", not "use this URL". Restricting which resources are accessed would call for refinements or other mechanisms, and is outside this scope.</p>
+
+  <footer>
+    <span>Repository: <a href="https://github.com/sawady/capacidades-haskell">github.com/sawady/capacidades-haskell</a>. <code>./build.sh</code> builds and runs everything, and checks that the examples in <code>must-fail/</code> do not compile.</span>
+    <span>Tested with GHC 9.12.2, using <code>base</code>, <code>mtl</code> and <code>transformers</code>.</span>
+  </footer>
+</main>
+</body>
+</html>
